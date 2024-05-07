@@ -1,7 +1,7 @@
 <template>
   <div
-    :class="`${_class}-item`"
-    :id="props.id"
+    :class="[`${prefix}-item`, 'bento-grid-item']"
+    :id="`${prefix}-${props.id}`"
     :style="itemStyle">
     <slot></slot>
   </div>
@@ -9,6 +9,10 @@
 
 <script setup lang="ts">
   import { Ref, StyleValue, computed, inject } from 'vue';
+
+  defineOptions({
+    name: 'BentoGridItem',
+  })
 
   const props = withDefaults(defineProps<{
     id: string,
@@ -23,7 +27,7 @@
 
   const size = inject<Ref<number>>('size')!
   const gutter = inject<Ref<number>>('gutter')!
-  const _class = inject<Ref<string>>('class')
+  const prefix = inject<Ref<string>>('prefix')
 
   const itemStyle: Ref<StyleValue> = computed(() => {
     const [_size, _gutter] = [size.value, gutter.value]

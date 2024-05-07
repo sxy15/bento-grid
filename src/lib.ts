@@ -2,7 +2,7 @@ import { makeArray } from "./utils";
 import type { Ref } from "vue";
 import type { BentoGridProps, RequiredBentoGridItemProps } from "./types";
 
-export function init(grids: Ref<RequiredBentoGridItemProps[]>, props: BentoGridProps) {
+export function initMatrix(grids: Ref<RequiredBentoGridItemProps[]>, props: BentoGridProps) {
   if(grids.value.length === 0) return
   const isOverlap = checkOverlap(grids.value);
   const isOutBoundary = checkOutBoundary(grids.value, props);

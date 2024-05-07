@@ -1,6 +1,7 @@
 <template>
-  <div class="bento-grid">
-    <BentoGridItem 
+  <div 
+    :class="['bento-grid', `${prefix}-grid`]" ref="bentoGridRef">
+    <BentoGridItem
       v-for="item in grids" 
       :key="item.id" 
       v-bind="item">
@@ -10,25 +11,34 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, provide, computed } from 'vue';
-  import { init } from './lib'
-  import { MAX, DEFAULT_CLASS } from './constants'
+  import { ref, provide, computed, onMounted, reactive } from 'vue';
+  import { initMatrix } from './lib'
+  import { initBind } from './bind'
+  import { MAX, DEFAULT_PREFIX } from './constants'
   import BentoGridItem from './BentoGridItem.vue';
-  import type { BentoGridProps, RequiredBentoGridItemProps } from './types'
+  import type { BentoGridProps, RequiredBentoGridItemProps, BentoGridItemProps } from './types'
 
+  defineOptions({
+    name: 'BentoGrid',
+  })
   const props = withDefaults(defineProps<BentoGridProps>(), {
     max: MAX,
     size: 100,
     gutter: 4,
     disabled: false,
     tilt: true,
-    class: DEFAULT_CLASS,
+    prefix: DEFAULT_PREFIX,
   })
-
-  provide('size', computed(() => props.size))
-  provide('gutter', computed(() => props.gutter))
-  provide('class', computed(() => props.class))
-
+  const bentoGridRef = ref<HTMLElement | null>(null)
+  const isDragging = ref(false)
+  const draggingId = ref('')
+  const placeholder = reactive({
+    x: 0,
+    y: 0,
+    w: 0,
+    h: 0,
+    index: -1,
+  })
   const grids = ref<RequiredBentoGridItemProps[]>(props.grids.map((grid, index) => ({
     ...grid,
     x: grid.x ?? 0,
@@ -38,6 +48,24 @@
     index,
   })))
 
-  init(grids, props)
+  provide('size', computed(() => props.size))
+  provide('gutter', computed(() => props.gutter))
+  provide('prefix', computed(() => props.prefix))
+
+  initMatrix(grids, props)
   
+  onMounted(() => initBind(bentoGridRef, {
+    grids,
+    isDragging,
+    draggingId,
+    props
+  }))
 </script>
+
+<style lang="scss">
+  .bento-grid {
+    position: relative;
+    will-change: height;
+    transition: height 200ms ease;
+  }
+</style>./bind

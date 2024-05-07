@@ -1,12 +1,12 @@
-import type { Component, Raw } from "vue";
+import type { Component, Raw, Ref } from "vue";
 
 export interface BentoGridProps {
   grids: BentoGridItemProps[];
   max: number;
   gutter?: number;
-  class?: string;
   tilt?: boolean;
   disabled?: boolean;
+  prefix?: string;
   size?: number;
   item?: Raw<Component<BentoGridItemProps & Record<string, string>>>;
 }
@@ -25,3 +25,10 @@ export interface BentoGridItemType {
 export type BentoGridItemProps = Pick<BentoGridItemType, 'id' | 'x' | 'y' | 'w' | 'h' | 'index'>;
 
 export type RequiredBentoGridItemProps = Required<BentoGridItemProps>;
+
+export type BindOps = {
+  grids: Ref<BentoGridItemProps[]>;
+  isDragging: Ref<boolean>;
+  draggingId: Ref<string | undefined>;
+  props: BentoGridProps;
+}
