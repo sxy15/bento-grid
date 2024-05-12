@@ -1,14 +1,22 @@
 <template>
   <div
     :class="[`${prefix}-item`, 'bento-grid-item']"
-    :id="`${prefix}-${props.id}`"
-    :style="itemStyle">
+    :id="`${prefix}-${id}`"
+    :style="{
+      position: 'absolute',
+      willChange: 'transform',
+      transform: id == draggingId.value
+      ? `translate3d(${x! * (size + gutter) + draggingPoint.x}px, ${y! * (size + gutter) + draggingPoint.y}px, 0)` 
+      : `translate3d(${x! * (size + gutter)}px, ${y! * (size + gutter)}px, 0)`,
+      width: `${w! * size + (w - 1) * gutter}px`,
+      height: `${h! * size + (h - 1) * gutter}px`,
+    }">
     <slot></slot>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { Ref, StyleValue, computed, inject } from 'vue';
+  import { Ref, inject } from 'vue';
 
   defineOptions({
     name: 'BentoGridItem',
@@ -28,17 +36,6 @@
   const size = inject<Ref<number>>('size')!
   const gutter = inject<Ref<number>>('gutter')!
   const prefix = inject<Ref<string>>('prefix')
-
-  const itemStyle: Ref<StyleValue> = computed(() => {
-    const [_size, _gutter] = [size.value, gutter.value]
-    return {
-      position: 'absolute',
-      willChange: 'transform',
-      transform: `translate3d(${props.x! * (_size + _gutter)}px, ${props.y! * (_size + _gutter)}px, 0)`,
-      transition: 'transform 0.3s cubic-bezier(.4,0,.2,1)',
-      width: `${props.w! * _size + (props.w - 1) * _gutter}px`,
-      height: `${props.h! * _size + (props.h - 1) * _gutter}px`,
-      overflow: 'hidden',
-    }
-  })
+  const draggingId = inject<Ref<string>>('draggingId')
+  const draggingPoint = inject<{ x: number, y: number }>('draggingPoint')
 </script>

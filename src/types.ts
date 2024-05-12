@@ -30,5 +30,6 @@ export type BindOps = {
   grids: Ref<BentoGridItemProps[]>;
   isDragging: Ref<boolean>;
   draggingId: Ref<string | undefined>;
+  draggingPoint: { x: number, y: number };
   props: BentoGridProps;
 }

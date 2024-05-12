@@ -11,9 +11,9 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, provide, computed, onMounted, reactive } from 'vue';
+  import { ref, provide, computed, onMounted, reactive, watch } from 'vue';
   import { initMatrix } from './lib'
-  import { initBind } from './bind'
+  import { initBind } from './mount'
   import { MAX, DEFAULT_PREFIX } from './constants'
   import BentoGridItem from './BentoGridItem.vue';
   import type { BentoGridProps, RequiredBentoGridItemProps, BentoGridItemProps } from './types'
@@ -31,7 +31,8 @@
   })
   const bentoGridRef = ref<HTMLElement | null>(null)
   const isDragging = ref(false)
-  const draggingId = ref('')
+  const draggingId = ref<string>('')
+  const draggingPoint = reactive({ x: 0, y: 0 })
   const placeholder = reactive({
     x: 0,
     y: 0,
@@ -51,15 +52,20 @@
   provide('size', computed(() => props.size))
   provide('gutter', computed(() => props.gutter))
   provide('prefix', computed(() => props.prefix))
+  provide('draggingId', computed(() => draggingId))
+  provide('draggingPoint', computed(() => draggingPoint))
 
   initMatrix(grids, props)
   
-  onMounted(() => initBind(bentoGridRef, {
-    grids,
-    isDragging,
-    draggingId,
-    props
-  }))
+  onMounted(() => {
+    initBind(bentoGridRef, {
+      grids,
+      isDragging,
+      draggingId,
+      draggingPoint,
+      props
+    })
+  })
 </script>
 
 <style lang="scss">

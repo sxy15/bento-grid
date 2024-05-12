@@ -2,6 +2,7 @@ import { Ref } from "vue";
 import { BentoGridProps, BindOps } from "./types";
 
 let opts: BindOps
+let draggingStartPoint: { x: number, y: number }
 
 const binds: [keyof HTMLElementEventMap, (ev: PointerEvent | any) => any][] = [
   ['pointerdown', pointerdown],
@@ -16,8 +17,11 @@ export function initBind(ref: Ref<HTMLElement | null>, _opts: BindOps) {
   opts = _opts
 
   binds.forEach(([eventType, handler]) => {
-    el.addEventListener(eventType, handler, false)
+    window.addEventListener(eventType, handler, false)
   })
+  addEventListener('pointerdown', (e) => {
+    e.preventDefault()
+  }, false)
 }
 
 export function unBind(ref: Ref<HTMLElement | null>) {
@@ -30,16 +34,30 @@ export function unBind(ref: Ref<HTMLElement | null>) {
 }
 
 function pointerdown(ev: PointerEvent) {
-  const id = getPointItemId(ev)
-
+  ev.preventDefault();
+  const id = getPointItemId(ev)  
+  if(!id) return
   opts.draggingId.value = id
+  draggingStartPoint = { x: ev.clientX, y: ev.clientY }
 }
 
 function pointermove(ev: PointerEvent) {
-  console.log('pointermove', ev)
+  const { clientX, clientY } = ev
+
+  if(!opts.draggingId.value) return
+
+  const dx = clientX - draggingStartPoint.x
+  const dy = clientY - draggingStartPoint.y
+  opts.draggingPoint.x = dx
+  opts.draggingPoint.y = dy
 }
 
-function pointerup(ev: PointerEvent) {}
+function pointerup() {
+  console.log('pointerup')
+  if(!opts.draggingId.value) return
+
+  opts.draggingId.value = undefined
+}
 
 function getPointItemId(ev: PointerEvent) {
   const { clientX, clientY } = ev
