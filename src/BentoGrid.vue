@@ -11,12 +11,12 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, provide, computed, onMounted, reactive, watch } from 'vue';
+  import { ref, provide, computed, onMounted, reactive } from 'vue';
   import { initMatrix } from './lib'
   import { initBind } from './mount'
   import { MAX, DEFAULT_PREFIX } from './constants'
   import BentoGridItem from './BentoGridItem.vue';
-  import type { BentoGridProps, RequiredBentoGridItemProps, BentoGridItemProps } from './types'
+  import type { BentoGridProps, RequiredBentoGridItemProps } from './types'
 
   defineOptions({
     name: 'BentoGrid',
@@ -32,7 +32,7 @@
   const bentoGridRef = ref<HTMLElement | null>(null)
   const isDragging = ref(false)
   const draggingId = ref<string>('')
-  const draggingPoint = reactive({ x: 0, y: 0 })
+  const draggingPoint = reactive({ x: 0, y: 0, rotate: 0 })
   const placeholder = reactive({
     x: 0,
     y: 0,
