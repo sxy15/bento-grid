@@ -34,10 +34,16 @@ export function unBind(ref: Ref<HTMLElement | null>) {
   })
 }
 
+const maxSpeed = 10;
+const maxAngle = 30;
+const fixedCoefficient = 0.8;
+let moveStartTime;
+let moveCounter = 0
 function pointerdown(ev: PointerEvent) {
   ev.preventDefault();
   const id = getPointItemId(ev)  
   if(!id) return
+  moveStartTime = performance.now()
   opts.draggingId.value = id
   draggingStartPoint = { x: ev.clientX, y: ev.clientY }
 }
@@ -53,8 +59,16 @@ function pointermove(ev: PointerEvent) {
   velocityX = endX - startX;
   velocityY = endY - startY;
   // Update rotation
-  const rotate = -Math.atan2(velocityY, velocityX) * 180 / Math.PI
-  opts.draggingPoint.rotate = rotate >= 0 ? Math.min(30, rotate) : Math.max(-30, rotate);
+  const speed = velocityX / (performance.now() - moveStartTime);
+  const rotate = -(speed / maxSpeed) * maxAngle * fixedCoefficient; // TODO：判断位置
+  if(moveCounter++ % 10 === 0) {
+    opts.draggingPoint.rotate =  Number(rotate.toFixed(2));
+    console.log('rotate', rotate)
+    moveCounter = 0;
+  } else {
+    moveCounter++;
+  }
+  moveStartTime = performance.now();
   startX = endX;
   startY = endY;
 
@@ -66,8 +80,13 @@ function pointermove(ev: PointerEvent) {
 
 function pointerup() {
   if(!opts.draggingId.value) return
-
+  opts.draggingPoint.rotate = 0
   opts.draggingId.value = undefined
+}
+
+function getTiltAngle(speed, maxSpeed, maxAngle, fixedCoefficient) {
+  let tiltAngle = -(speed / maxSpeed) * maxAngle * fixedCoefficient;
+  return tiltAngle;
 }
 
 function getPointItemId(ev: PointerEvent) {
