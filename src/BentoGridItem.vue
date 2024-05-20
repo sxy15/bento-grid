@@ -1,7 +1,7 @@
 <template>
   <div
     :class="[`${prefix}-item`, 'bento-grid-item']"
-    :id="`${prefix}-${id}`"
+    :data-id="`${prefix}-${id}`"
     :style="{
       position: 'absolute',
       willChange: 'transform',

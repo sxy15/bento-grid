@@ -1,6 +1,6 @@
 import { makeArray } from "./utils";
-import type { Ref } from "vue";
-import type { BentoGridProps, RequiredBentoGridItemProps } from "./types";
+import { unref, type Ref } from "vue";
+import type { BentoGridProps, BindOps, RequiredBentoGridItemProps } from "./types";
 
 export function initMatrix(grids: Ref<RequiredBentoGridItemProps[]>, props: BentoGridProps) {
   if(grids.value.length === 0) return
@@ -35,19 +35,19 @@ function checkOutBoundary(grids: RequiredBentoGridItemProps[], props: Pick<Bento
   return grids.some(grid => 
     grid.x < 0 ||
     grid.y < 0 ||
-    grid.x + grid.w > max)
+    grid.x + grid.w > max!)
 }
 
 function initializeGrids(grids: Ref<RequiredBentoGridItemProps[]>, props: Pick<BentoGridProps, 'max'>) {
   const { max } = props;
   const maxGrid = grids.value.reduce((sum, item) => sum + item.y + item.h, 0);
-  const matrix =  makeArray(maxGrid).map(() => makeArray(max));
+  const matrix =  makeArray(maxGrid).map(() => makeArray(max!));
 
   const middle = sortGrids(grids)
 
   updateMatrix(matrix, grids, middle);
 
-  console.log('matrix', matrix)
+  computedXY(grids);
 }
 
 function sortGrids(grids: Ref<RequiredBentoGridItemProps[]>): [RequiredBentoGridItemProps[], Map<string, number>]{
@@ -69,39 +69,85 @@ function updateMatrix(matrix: number[][],
   const [temp, tempMap] = middle;
 
   for(let i = 0; i < temp.length; i++) {
-    let foundCell = false;
 
-    for(let row = 0; row < matrix.length; row++) {
-      if (foundCell) break
+    row: for(let row = 0; row < matrix.length; row++) {
       for(let col = 0; col < matrix[row].length; col++) {
         const {w, h} = temp[i];
         
-        let available = true
-        for (let r = row; r < row + h; r++) {
+        let available = true;
+        outer: for (let r = row; r < row + h; r++) {
           for (let c = col; c < col + w; c++) {
             if (matrix[r][c] !== 0) {
-              available = false
-              break
+              available = false;
+              break outer
             }
           }
-          if (!available)
-            break
         }
 
-        if (available) {
+        if(available) {
           const realIndex = tempMap.get(temp[i].id)
           if (realIndex !== undefined) {
-           grids.value[realIndex].x = col
-           grids.value[realIndex].y = row
+            grids.value[realIndex].x = col
+            grids.value[realIndex].y = row
           }
           for (let r = row; r < row + h; r++) {
             for (let c = col; c < col + w; c++)
               matrix[r][c] = 1
           }
-          foundCell = true
-          break
+          break row
         }
       }
     }
+  }
+}
+
+function computedXY(grids: Ref<(RequiredBentoGridItemProps & {_x?: number, _y?: number})[]>) {
+  grids.value.forEach((grid, i) => {
+    grid._x = grid.x + grid.w / 2
+    grid._y = grid.y + grid.h / 2
+  })
+}
+
+const binds: [keyof HTMLElementEventMap, (ev: PointerEvent | any) => any][] = [
+  ['pointerdown', pointerdown],
+  ['pointermove', pointermove],
+  ['pointerup', pointerup]
+]
+let opts: BindOps
+export function initMount(ref: Ref<HTMLElement | null>, _opts: BindOps) {
+  const el = unref(ref)
+  if(!el) return
+  opts = _opts
+  binds.forEach(([eventType, handler]) => {
+    window.addEventListener(eventType, handler, false)
+  })
+}
+export function pointerdown(e) {
+  e.preventDefault()
+  const grid = getPointItemId(e)
+  opts.draggingId.value = grid?.id
+  if(grid) {
+    opts.isDragging.value = true
+    opts.placeholder.value = {
+      ...grid
+    }
+  }
+}
+export function pointermove(e) {
+  // const rect = opts
+}
+export function pointerup() {}
+export function getPointItemId(e: PointerEvent) {
+  const { clientX, clientY } = e
+  let el = document.elementFromPoint(clientX, clientY)
+  while(el && !el.classList.contains('bento-grid-item')) {
+    el = el.parentElement
+  }
+
+  let id = el?.getAttribute('data-id')
+  if(id) {
+    const grid = opts.grids.value.find(grid => id === (grid as any)._id)
+
+    return grid
   }
 }

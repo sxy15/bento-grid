@@ -1,5 +1,5 @@
 import { Ref } from "vue";
-import { BentoGridProps, BindOps } from "./types";
+import { BindOps } from "./types";
 
 let opts: BindOps
 let draggingStartPoint: { x: number, y: number }
@@ -82,11 +82,6 @@ function pointerup() {
   if(!opts.draggingId.value) return
   opts.draggingPoint.rotate = 0
   opts.draggingId.value = undefined
-}
-
-function getTiltAngle(speed, maxSpeed, maxAngle, fixedCoefficient) {
-  let tiltAngle = -(speed / maxSpeed) * maxAngle * fixedCoefficient;
-  return tiltAngle;
 }
 
 function getPointItemId(ev: PointerEvent) {

@@ -1,2 +1,2 @@
-export const MAX = 4;
+export const MAX = 12;
 export const DEFAULT_PREFIX = 'bento';

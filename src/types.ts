@@ -1,14 +1,30 @@
 import type { Component, Raw, Ref } from "vue";
 
+export const breakpoints = {
+  lg: 1200,
+  md: 996,
+  sm: 768,
+  xs: 480,
+  xxs: 0
+}
+
+export const cols = {
+  lg: 12,
+  md: 10,
+  sm: 6,
+  xs: 4,
+  xxs: 2
+}
 export interface BentoGridProps {
   grids: BentoGridItemProps[];
-  max: number;
+  max?: number;
+  size?: number;
   gutter?: number;
   tilt?: boolean;
-  disabled?: boolean;
+  draggable?: boolean;
   prefix?: string;
-  size?: number;
-  item?: Raw<Component<BentoGridItemProps & Record<string, string>>>;
+  item?: Component<BentoGridItemProps & Record<string, string>>;
+  cols?: Record<keyof typeof breakpoints, number>;
 }
 
 export interface BentoGridItemType {
@@ -19,6 +35,8 @@ export interface BentoGridItemType {
   h?: number;
   index?: number;
   item?: Raw<Component<any>>;
+  _x?: number;
+  _y?: number;
   [key: string]: any;
 }
 
@@ -31,5 +49,6 @@ export type BindOps = {
   isDragging: Ref<boolean>;
   draggingId: Ref<string | undefined>;
   draggingPoint: { x: number, y: number, rotate: number };
+  placeholder: Ref<BentoGridItemProps>,
   props: BentoGridProps;
 }
