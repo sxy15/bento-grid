@@ -1,6 +1,6 @@
 import { makeArray } from "./utils";
 import { unref, type Ref } from "vue";
-import type { BentoGridProps, BindOps, RequiredBentoGridItemProps } from "./types";
+import type { BentoGridItemType, BentoGridProps, BindOps, RequiredBentoGridItemProps } from "./types";
 
 export function initMatrix(grids: Ref<RequiredBentoGridItemProps[]>, props: BentoGridProps) {
   if(grids.value.length === 0) return
@@ -114,19 +114,29 @@ const binds: [keyof HTMLElementEventMap, (ev: PointerEvent | any) => any][] = [
   ['pointerup', pointerup]
 ]
 let opts: BindOps
-export function initMount(ref: Ref<HTMLElement | null>, _opts: BindOps) {
-  const el = unref(ref)
+let ref: Ref<HTMLElement | null>
+export function initMount(_ref: Ref<HTMLElement | null>, _opts: BindOps) {
+  const el = unref(_ref)
   if(!el) return
+  ref = _ref
   opts = _opts
   binds.forEach(([eventType, handler]) => {
     window.addEventListener(eventType, handler, false)
   })
 }
+let pointStart = { x: 0, y: 0 }
+let pointTo = { x: 0, y: 0 }
+let moveStartTime = performance.now()
+let moveCounter = 0
+let pointIsTop = false
 export function pointerdown(e) {
   e.preventDefault()
   const grid = getPointItemId(e)
-  opts.draggingId.value = grid?.id
-  if(grid) {
+  opts.draggingPoint.value = grid
+  const rect = ref.value?.getBoundingClientRect()
+  if(grid && rect) {
+    pointStart = {x: e.clientX, y: e.clientY}
+    pointIsTop = ((pointStart.y - rect.y) / opts.size) < (grid as any)._y
     opts.isDragging.value = true
     opts.placeholder.value = {
       ...grid
@@ -134,9 +144,48 @@ export function pointerdown(e) {
   }
 }
 export function pointermove(e) {
-  // const rect = opts
+  const rect = ref.value?.getBoundingClientRect()
+  if(!rect || !opts.draggingPoint.value) return
+  const distanceX = e.clientX - pointTo.x
+  const deltaTime = performance.now() - moveStartTime
+  const velocity = distanceX / deltaTime
+  const rotate = (velocity / 10) * 40 * (pointIsTop ? 0.8 : -0.8)
+  if(moveCounter++ % 10 === 0) {
+    opts.draggingPoint.value.rotate = Number(rotate.toFixed(2))
+  }
+  moveStartTime = performance.now()
+  pointTo = { x: e.clientX, y: e.clientY }
+
+  if(opts.isDragging.value) {
+    const distanceX = (pointTo.x - pointStart.x) / opts.size
+    const distanceY = (pointTo.y - pointStart.y) / opts.size
+    opts.draggingPoint.value.x += distanceX
+    opts.draggingPoint.value.y += distanceY
+    const { draggingPoint, props } = opts
+    if(draggingPoint.value.x < 0) {
+      draggingPoint.value.x = 0
+    }
+    if(draggingPoint.value.x + draggingPoint.value.w > props.max!) {
+      draggingPoint.value.x = props.max! - draggingPoint.value.w
+    }
+    if(draggingPoint.value.y < 0) {
+      draggingPoint.value.y = 0
+    }
+
+    pointStart = { x: e.clientX, y: e.clientY }
+  }
 }
-export function pointerup() {}
+export function pointerup() {
+  if(opts.draggingPoint.value) {
+    opts.draggingPoint.value.x = opts.placeholder.value.x
+    opts.draggingPoint.value.y = opts.placeholder.value.y
+    opts.draggingPoint.value = null
+  }
+  pointStart.x = 0
+  pointStart.y = 0
+
+  opts.isDragging.value = false
+}
 export function getPointItemId(e: PointerEvent) {
   const { clientX, clientY } = e
   let el = document.elementFromPoint(clientX, clientY)

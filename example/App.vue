@@ -29,5 +29,8 @@ const grids = [
 </template>
 
 <style scoped>
-
+  .bento-grid {
+    width: 624px;
+    background-color: aliceblue;
+  }
 </style>

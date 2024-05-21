@@ -47,8 +47,8 @@ export type RequiredBentoGridItemProps = Required<BentoGridItemProps>;
 export type BindOps = {
   grids: Ref<BentoGridItemProps[]>;
   isDragging: Ref<boolean>;
-  draggingId: Ref<string | undefined>;
-  draggingPoint: { x: number, y: number, rotate: number };
-  placeholder: Ref<BentoGridItemProps>,
+  draggingPoint: Ref<any>;
+  placeholder: Ref<BentoGridItemProps>;
+  size: number;
   props: BentoGridProps;
 }

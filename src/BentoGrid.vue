@@ -14,7 +14,7 @@
     </BentoGridItem>
 
     <div
-      v-show="draggingId"
+      v-show="draggingPoint"
       :class="['bento-item-placeholder', `${prefix}-grid`]"
       :style="{
         position: 'absolute',
@@ -54,8 +54,7 @@
   const bentoGridRef = ref<HTMLElement | null>(null)
   const bentoGridHeight = ref('0px')
   const isDragging = ref(false)
-  const draggingId = ref<string>('')
-  const draggingPoint = reactive({ x: 0, y: 0, rotate: 0 })
+  const draggingPoint = ref(null)
   const placeholder = ref<BentoGridItemProps>({
     id: 'placeholder',
     x: 0,
@@ -77,8 +76,7 @@
   provide('size', computed(() => props.size))
   provide('gutter', computed(() => props.gutter))
   provide('prefix', computed(() => props.prefix))
-  provide('draggingId', computed(() => draggingId))
-  provide('draggingPoint', computed(() => draggingPoint))
+  provide('draggingPoint', draggingPoint)
 
   watch(grids, (v) => {
     if(v?.length) {
@@ -97,9 +95,9 @@
     initMount(bentoGridRef, {
       grids,
       isDragging,
-      draggingId,
       draggingPoint,
       placeholder,
+      size: props.size,
       props
     })
   })
