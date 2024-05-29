@@ -29,12 +29,13 @@ export interface BentoGridProps {
 
 export interface BentoGridItemType {
   id: string;
-  x?: number;
-  y?: number;
-  w?: number;
-  h?: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
   index?: number;
-  item?: Raw<Component<any>>;
+  rotate?: number;
+  item?: Component<any>;
   _x?: number;
   _y?: number;
   [key: string]: any;

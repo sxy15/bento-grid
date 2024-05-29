@@ -2,10 +2,10 @@
   <div 
     ref="bentoGridRef"
     :style="{
-      position: 'relative',
+      width: bentoGridWidth,
       height: bentoGridHeight
     }"
-    :class="['bento-grid', `${prefix}-grid`]">
+    :class="['bento-grid', `${prefix}_grid`]">
     <BentoGridItem
       v-for="item in grids" 
       :key="item.id" 
@@ -15,7 +15,7 @@
 
     <div
       v-show="draggingPoint"
-      :class="['bento-item-placeholder', `${prefix}-grid`]"
+      :class="['bento-grid-placeholder', `${prefix}_placeholder`]"
       :style="{
         position: 'absolute',
         willChange: 'transform',
@@ -32,11 +32,11 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, provide, computed, onMounted, reactive, watch } from 'vue';
-  import { initMatrix, initMount } from './init'
+  import { ref, computed } from 'vue';
   import { MAX, DEFAULT_PREFIX } from './constants'
   import BentoGridItem from './BentoGridItem.vue';
-  import { BentoGridItemProps, cols, type BentoGridProps, type RequiredBentoGridItemProps } from './types'
+  import { BentoGridItemProps, cols, type BentoGridProps } from './types'
+import { initMatrix } from './helpers/matrix';
 
   defineOptions({
     name: 'BentoGrid',
@@ -50,9 +50,8 @@
     prefix: DEFAULT_PREFIX,
     cols: () => cols
   })
-
+  const grids = ref<BentoGridItemProps[]>(props.grids)
   const bentoGridRef = ref<HTMLElement | null>(null)
-  const bentoGridHeight = ref('0px')
   const isDragging = ref(false)
   const draggingPoint = ref(null)
   const placeholder = ref<BentoGridItemProps>({
@@ -63,54 +62,31 @@
     h: 0,
     index: -1,
   })
-  const grids = ref<RequiredBentoGridItemProps[]>(props.grids.map((grid, index) => ({
-    ...grid,
-    _id: `${props.prefix}-${grid.id}`,
-    x: grid.x ?? 0,
-    y: grid.y ?? 0,
-    w: grid.w ?? 1,
-    h: grid.h ?? 1,
-    index,
-  })))
-
-  provide('size', computed(() => props.size))
-  provide('gutter', computed(() => props.gutter))
-  provide('prefix', computed(() => props.prefix))
-  provide('draggingPoint', draggingPoint)
-
-  watch(grids, (v) => {
-    if(v?.length) {
-      const h = v.reduce((acc, cur) => (acc?.y + acc?.h > cur?.y + cur?.h ? acc : cur))
-      if(h) {
-        bentoGridHeight.value = `${(h.y + h.h) * props.size! + (h.y + h.h - 1) * props.gutter!}px`
-      }
-    }
-  }, {
-    deep: true,
-    immediate: true
-  })
-
-  initMatrix(grids, props)
-  onMounted(() => {
-    initMount(bentoGridRef, {
-      grids,
-      isDragging,
-      draggingPoint,
-      placeholder,
-      size: props.size,
-      props
+  const bentoGridWidth = computed(() => `${props.max * props.size + (props.max - 1) * props.gutter}px`)
+  const bentoGridHeight = computed(() => {
+    const h = grids.value.reduce((p, c) => {
+      return (p.y + p.h > c.y + c.h) ? p : c
     })
+    return `${(h.y + h.h) * props.size! + (h.y + h.h - 1) * props.gutter!}px`
   })
+
+  // 1. 初始化grid位置
+  if(grids.value?.length) {
+    initMatrix(grids, props)
+  }
+  // 2. 拖拽绑定处理
 </script>
 
 <style lang="scss">
   .bento-grid {
     position: relative;
-    will-change: height;
-    transition: height 200ms ease;
+    will-change: transform;
+    transition: all 200ms ease;
+    margin-left: auto;
+    margin-right: auto;
   }
 
-  .bento-item-placeholder {
+  .bento-grid-placeholder {
     pointer-events: none;
     transition: all 500ms ease;
     border-radius: 8px;
