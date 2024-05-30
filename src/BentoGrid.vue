@@ -8,8 +8,13 @@
     :class="['bento-grid', `${prefix}_grid`]">
     <BentoGridItem
       v-for="item in grids" 
-      :key="item.id" 
-      v-bind="item">
+      :key="item.id"
+      v-bind="{
+        ...item,
+        prefix,
+        gutter,
+        size
+      }">
       <item v-bind="item"/>
     </BentoGridItem>
 
@@ -32,11 +37,12 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, computed } from 'vue';
+  import { ref, computed, onMounted, provide } from 'vue';
   import { MAX, DEFAULT_PREFIX } from './constants'
-  import BentoGridItem from './BentoGridItem.vue';
   import { BentoGridItemProps, cols, type BentoGridProps } from './types'
-import { initMatrix } from './helpers/matrix';
+  import { initMatrix } from './helpers/matrix';
+  import { initDrag } from './helpers/drag';
+  import BentoGridItem from './BentoGridItem.vue';
 
   defineOptions({
     name: 'BentoGrid',
@@ -45,7 +51,7 @@ import { initMatrix } from './helpers/matrix';
     max: MAX,
     size: 100,
     gutter: 4,
-    disabled: false,
+    draggable: true,
     tilt: true,
     prefix: DEFAULT_PREFIX,
     cols: () => cols
@@ -53,7 +59,7 @@ import { initMatrix } from './helpers/matrix';
   const grids = ref<BentoGridItemProps[]>(props.grids)
   const bentoGridRef = ref<HTMLElement | null>(null)
   const isDragging = ref(false)
-  const draggingPoint = ref(null)
+  const draggingPoint = ref<any>(null)
   const placeholder = ref<BentoGridItemProps>({
     id: 'placeholder',
     x: 0,
@@ -62,6 +68,8 @@ import { initMatrix } from './helpers/matrix';
     h: 0,
     index: -1,
   })
+  provide('draggingPoint', draggingPoint)
+  
   const bentoGridWidth = computed(() => `${props.max * props.size + (props.max - 1) * props.gutter}px`)
   const bentoGridHeight = computed(() => {
     const h = grids.value.reduce((p, c) => {
@@ -74,7 +82,17 @@ import { initMatrix } from './helpers/matrix';
   if(grids.value?.length) {
     initMatrix(grids, props)
   }
-  // 2. 拖拽绑定处理
+  // 2. 拖拽处理
+  onMounted(() => {
+    initDrag(
+      bentoGridRef,
+      grids,
+      isDragging,
+      placeholder,
+      draggingPoint,
+      props,
+    )
+  })
 </script>
 
 <style lang="scss">
@@ -82,8 +100,6 @@ import { initMatrix } from './helpers/matrix';
     position: relative;
     will-change: transform;
     transition: all 200ms ease;
-    margin-left: auto;
-    margin-right: auto;
   }
 
   .bento-grid-placeholder {

@@ -15,7 +15,7 @@
       width: `${w! * size + (w - 1) * gutter}px`,
       height: `${h! * size + (h - 1) * gutter}px`,
     }">
-    <div 
+    <div
       :style="{
         width: '100%',
         height: '100%',
@@ -42,15 +42,17 @@
     y: number,
     w?: number,
     h?: number,
+    prefix: string,
+    gutter: number,
+    size: number,
   }>(), {
     w: 1,
     h: 1,
   })
 
-  const size = inject<Ref<number>>('size')!
-  const gutter = inject<Ref<number>>('gutter')!
-  const prefix = inject<Ref<string>>('prefix')
   const zIndexClass = ref('')
+  const draggingPoint = inject<Ref<any>>('draggingPoint')!
+  const isDraggingGrid = computed(() => draggingPoint.value?.id === props.id)
 </script>
 
 <style lang="scss">
