@@ -2,7 +2,8 @@
   <div
     :class="[
       `${prefix}_grid_item`, 
-      'bento-grid-item', 
+      'bento-grid-item',
+      (isDragging && isDraggingGrid) && 'bento-grid-item__dragging',
       zIndexClass
     ]"
     :data-id="`${prefix}-${id}`"
@@ -29,8 +30,7 @@
 
 <script setup lang="ts">
   import { Ref, computed, inject, ref, watch } from 'vue';
-  import { BentoGridItemType } from './types';
-  import { DRAGGING_CLASS } from './constants';
+  import { Z_INDEX } from './constants';
 
   defineOptions({
     name: 'BentoGridItem',
@@ -52,11 +52,36 @@
 
   const zIndexClass = ref('')
   const draggingPoint = inject<Ref<any>>('draggingPoint')!
+  const isDragging = inject<Ref<boolean>>('isDragging')!
   const isDraggingGrid = computed(() => draggingPoint.value?.id === props.id)
+  let timer: any = null
+
+  watch(isDraggingGrid, (nv) => {
+    if(nv) {
+      zIndexClass.value = Z_INDEX
+    } else {
+      if(timer) clearTimeout(timer)
+      timer = setTimeout(() => {
+        zIndexClass.value = ''
+      }, 400)
+    }
+  })
 </script>
 
 <style lang="scss">
-  .bento-grid-item__dragging {
+  .bento-grid-item__z {
     z-index: 10;
+  }
+
+  .bento-grid-item__dragging {
+    transition: none !important;
+  }
+
+  .bento-grid-item:hover {
+    cursor: grabbing;
+  }
+
+  .bento-grid-item {
+    transition: all 400ms ease 0s;
   }
 </style>

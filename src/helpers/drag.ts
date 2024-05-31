@@ -7,6 +7,7 @@ let pointStart = {x: 0, y: 0}
 let pointTo = {x: 0, y: 0}
 let moveStartTime = performance.now()
 let pointInTop = false
+let area: string[][] = []
 
 export const initDrag = (
   ref: Ref<HTMLElement | null>,
@@ -95,7 +96,27 @@ export const initDrag = (
       placeholder.value.x = Math.round(draggingPoint.value.x)
       placeholder.value.y = Math.round(draggingPoint.value.y)
 
-      // 拖拽时的排序
+      // 收集拖拽项以外的格子
+      const excludeDraggingGrids: BentoGridItemProps[] = []
+      grids.value.forEach(grid => {
+        if(grid.id !== draggingPoint.value.id) {
+          excludeDraggingGrids.push(grid)
+        }
+      })
+
+      area = getArea(excludeDraggingGrids)
+
+      const lineCount = area.length
+
+      arrangeByLine(lineCount, excludeDraggingGrids)
+
+      const y = bubbleUp(placeholder.value, area)
+      if(y < placeholder.value.y) {
+        placeholder.value.y = y
+      }
+
+      const allGridsByAreaSort = getAllCellsByArea(area, excludeDraggingGrids)
+      hitAllEle(placeholder.value, allGridsByAreaSort)
     }
   }
 
@@ -108,7 +129,7 @@ export const initDrag = (
     pointStart.x = 0
     pointStart.y = 0
     // 拖拽完成排序
-    
+
     isDragging.value = false
   }
 
@@ -131,5 +152,101 @@ export const initDrag = (
     const duration = performance.now() - startTime
     const distance = endX - startX
     return distance / duration
+  }
+
+  function getArea(nodes: BentoGridItemProps[]) {
+    const area: any = []
+    nodes.forEach(n => {
+      for(let row = n.y; row < n.y + n.h; row++) {
+        area[row] = area[row] || []
+        for(let col = n.x; col < n.x + n.w; col++) {
+          area[row][col] = n.id
+        }
+      }
+    })
+    return area
+  }
+
+  function arrangeByLine(lineCount: number, excludeDraggingGrids: BentoGridItemProps[]) {
+    for(let row = 0; row < lineCount; row++) {
+      if(area[row] && area[row]?.length > 0) {
+        area[row].forEach(id => {
+          if(id) {
+            excludeDraggingGrids.forEach(g => {
+              if(g.id === id) {
+                const y = bubbleUp(g, area)
+                if(y < g.y) {
+                  g.y = y
+                }
+              }
+            })
+          }
+        })
+      }
+      area = getArea(excludeDraggingGrids)
+    }
+  }
+
+  // 向上冒泡
+  function bubbleUp(node: BentoGridItemProps, area: string[][]): number {
+    for(let row = node.y - 1; row >= 0; row--) {
+      if(area[row] === undefined) {
+        continue
+      }
+
+      for(let col = node.x; col < node.x + node.w; col++) {
+        if (
+          area[row]
+          && area[row + 1]
+          && area[row][col] !== undefined
+          && area[row + 1][col] !== undefined
+          && area[row][col] === area[row + 1][col]
+        ) {
+          // 这里是两行的情况
+          //  ██ || ██ ██
+          //  ██ || ██ ██
+        } else if(area[row][col] !== undefined) {
+          return row + 1
+        }
+      }
+    }
+    return 0
+  }
+
+  function getAllCellsByArea(area: string[][], allGrids: BentoGridItemProps[]) {
+    const result: BentoGridItemProps[] = []
+    Array.from(new Set(area.flat())).forEach(id => {
+      allGrids.forEach(g => {
+        if(g.id === id && result.findIndex(it => it.id === g.id) === -1) {
+          result.push(g)
+        }
+      })
+    })
+    return result
+  }
+
+  function hitAllEle(node: BentoGridItemProps, allNodes: BentoGridItemProps[]) {
+    const hitNodes: any = []
+    allNodes.forEach((n) => {
+      if(node.id !== n.id && checkHit(node, n)) {
+        hitNodes.push(n)
+      }
+    })
+    hitNodes.forEach((n: BentoGridItemProps) => {
+      for (let h = n.y + 1; h <= node.y + node.h; h++) {
+        n.y = h
+        // 每次移动一格之后，就来检测一下，是否还有元素被碰撞
+        hitAllEle(n, allNodes)
+      }
+    })
+  }
+
+  function checkHit(a: BentoGridItemProps, b: BentoGridItemProps) {
+    return (
+      a.x < b.x + b.w
+      && a.x + a.w > b.x
+      && a.y < b.y + b.h
+      && a.y + a.h > b.y
+    )
   }
 }

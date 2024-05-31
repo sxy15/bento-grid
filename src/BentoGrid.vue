@@ -69,7 +69,8 @@
     index: -1,
   })
   provide('draggingPoint', draggingPoint)
-  
+  provide('isDragging', isDragging)
+
   const bentoGridWidth = computed(() => `${props.max * props.size + (props.max - 1) * props.gutter}px`)
   const bentoGridHeight = computed(() => {
     const h = grids.value.reduce((p, c) => {
