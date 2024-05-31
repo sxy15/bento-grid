@@ -1,9 +1,12 @@
 {
   "name": "bento-grids",
   "private": false,
-  "version": "0.0.0",
+  "version": "0.0.1",
   "type": "module",
-  "files": ["dist", "package.json"],
+  "files": [
+    "dist",
+    "package.json"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build --config vite.build.config.ts",
