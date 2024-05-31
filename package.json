@@ -1,12 +1,14 @@
 {
-  "name": "my-vue-app",
-  "private": true,
+  "name": "bento-grids",
+  "private": false,
   "version": "0.0.0",
   "type": "module",
+  "files": [],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "release": "bumpp"
   },
   "dependencies": {
     "@vueuse/motion": "^2.1.0",
@@ -14,6 +16,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.0.4",
+    "bumpp": "^9.4.1",
     "sass": "^1.76.0",
     "typescript": "^5.4.5",
     "vite": "^5.2.0"
