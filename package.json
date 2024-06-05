@@ -5,6 +5,7 @@
   "type": "module",
   "files": [
     "dist",
+    "README.md",
     "package.json"
   ],
   "scripts": {
