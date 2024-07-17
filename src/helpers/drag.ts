@@ -1,7 +1,8 @@
 import { Ref, watch } from "vue";
-import { BentoGridItemProps, BentoGridItemType, BentoGridProps } from "../types";
+import { BentoGridItemProps, BentoGridProps } from "../types";
 import { assign } from "./utils";
 import { ROTATE_CONFIG } from "../constants";
+import { sortDefault } from "./matrix";
 
 let pointStart = {x: 0, y: 0}
 let pointTo = {x: 0, y: 0}
@@ -24,6 +25,10 @@ export const initDrag = (
     } else {
       document.body.style.cursor = 'unset'
     }
+  })
+
+  watch(() => props.max, (nv, ov) => {
+    sortDefault(grids, nv!)
   })
 
   watch(() => props.draggable, (nv) => {
