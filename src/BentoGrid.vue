@@ -79,11 +79,7 @@
     return `${(h.y + h.h) * props.size! + (h.y + h.h - 1) * props.gutter!}px`
   })
 
-  // 1. 初始化grid位置
-  if(grids.value?.length) {
-    initMatrix(grids, props)
-  }
-  // 2. 拖拽处理
+  // 拖拽处理
   onMounted(() => {
     initDrag(
       bentoGridRef,
@@ -101,6 +97,7 @@
     position: relative;
     will-change: transform;
     transition: all 200ms ease;
+    margin: 0 auto;
   }
 
   .bento-grid-placeholder {

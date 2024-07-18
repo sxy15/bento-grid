@@ -5,6 +5,7 @@ import { makeArray } from "./utils";
 export const initMatrix = (grids: Ref<BentoGridItemProps[]>, props: BentoGridProps) => {
   const isOverlap = checkOverlap(grids.value)
   const isOutBoundary = checkBoundary(grids.value, props.max!)
+
   if(isOverlap || isOutBoundary) {
     sortDefault(grids, props.max!)
   }
@@ -42,8 +43,11 @@ export const checkBoundary = (grids: BentoGridItemProps[], max: number): boolean
 
 // 布局
 export const sortDefault = (grids: Ref<BentoGridItemProps[]>, max: number) => {
+  console.table(grids.value)
   const totalHeight = grids.value.reduce((acc, cur) => acc + cur.y + cur.h, 0)
   const matrix: number[][] = makeArray(totalHeight).map(() => makeArray(max))
+  console.table(matrix)
+  console.log('totalHeight', totalHeight)
   // 将grids进行排序，更新index
   const [sorted, map] = setGridsIndex(grids)
   // grids更新了 -> 更新matrix
@@ -56,21 +60,18 @@ export const sortDefault = (grids: Ref<BentoGridItemProps[]>, max: number) => {
 
         // 检查当前形状的位置是否可用
         let available = true
-        for(let i = row; i < row + h; i++) {
+        f2: for(let i = row; i < row + h; i++) {
           for(let j = col; j < col + w; j++) {
             if(matrix[i][j] !== 0) {
               available = false
-              break
+              break f2
             }
-          }
-          if(!available) {
-            break
           }
         }
 
         // 如果可用，则更新matrix & grids items 的位置
         if(available) {
-          const realIdx = map.get(sorted[index].id)
+          const realIdx = grids.value.findIndex(it => it.id === sorted[index].id)
           if(realIdx !== undefined) {
             grids.value[realIdx].x = col
             grids.value[realIdx].y = row
@@ -103,12 +104,9 @@ export const setGridsIndex = (grids: Ref<BentoGridItemProps[]>): [BentoGridItemP
 // sorted from top left to right an down
 export const sortItemsByRowCol = (items: BentoGridItemProps[]) => {
   return [...items].sort((a, b) => {
-    if(a.y === b.y && a.x === b.x) {
-      return 0
+    if(a.y === b.y) {
+      return a.x - b.x
     }
-    if(a.y > b.y || (a.y === b.y && a.x > b.x)) {
-      return 1
-    }
-    return -1
+    return a.y - b.y
   })
 }
